@@ -1,554 +1,1077 @@
 <!DOCTYPE html>
 <html lang="en">
- 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Medical AI Diagnosis</title>
- 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
- 
-    <style>
- 
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-            font-family:Arial;
-        }
- 
-        body{
-            background:#0f172a;
-            color:white;
-            min-height:100vh;
-            overflow-x:hidden;
-        }
- 
-        .navbar{
-            width:100%;
-            padding:20px 40px;
-            display:flex;
-            justify-content:space-between;
-            align-items:center;
-            background:rgba(255,255,255,0.05);
-            backdrop-filter:blur(10px);
-            position:sticky;
-            top:0;
-        }
- 
-        .logo{
-            font-size:28px;
-            font-weight:bold;
-        }
- 
-        .hero{
-            padding:60px 20px;
-            text-align:center;
-        }
- 
-        .hero h1{
-            font-size:52px;
-            margin-bottom:20px;
-        }
- 
-        .hero p{
-            color:#cbd5e1;
-            font-size:20px;
-        }
- 
-        .container{
-            max-width:1200px;
-            margin:auto;
-            padding:20px;
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:20px;
-        }
- 
-        .card{
-            background:rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.1);
-            padding:25px;
-            border-radius:24px;
-            backdrop-filter:blur(12px);
-        }
- 
-        .card h2{
-            margin-bottom:20px;
-        }
- 
-        input{
-            width:100%;
-            padding:14px;
-            margin-top:12px;
-            border:none;
-            border-radius:12px;
-            background:#1e293b;
-            color:white;
-            font-size:16px;
-        }
- 
-        button{
-            width:100%;
-            padding:15px;
-            margin-top:18px;
-            border:none;
-            border-radius:14px;
-            background:#3b82f6;
-            color:white;
-            font-size:18px;
-            cursor:pointer;
-            transition:0.3s;
-        }
- 
-        button:hover{
-            transform:translateY(-2px);
-            background:#2563eb;
-        }
- 
-        .result-card{
-            margin-top:25px;
-            text-align:center;
-            padding:20px;
-            border-radius:20px;
-            background:rgba(255,255,255,0.05);
-        }
- 
-        .risk-bar{
-            width:100%;
-            height:20px;
-            background:#1e293b;
-            border-radius:20px;
-            overflow:hidden;
-            margin-top:15px;
-        }
- 
-        .risk-fill{
-            height:100%;
-            width:0%;
-            transition:1s;
-        }
- 
-        .green{
-            background:#22c55e;
-        }
- 
-        .yellow{
-            background:#eab308;
-        }
- 
-        .red{
-            background:#ef4444;
-        }
- 
-        .reports{
-            margin-top:20px;
-        }
- 
-        .report-item{
-            background:rgba(255,255,255,0.05);
-            padding:15px;
-            border-radius:14px;
-            margin-top:12px;
-        }
- 
-        .chart-container{
-            margin-top:20px;
-        }
- 
-        .tips{
-            margin-top:20px;
-            padding:15px;
-            border-radius:14px;
-            background:rgba(255,255,255,0.05);
-        }
- 
-        @media(max-width:900px){
- 
-            .container{
-                grid-template-columns:1fr;
-            }
- 
-            .hero h1{
-                font-size:36px;
-            }
-        }
- 
-    </style>
- 
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediScan AI — Diabetes Prediction</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg:        #04080f;
+  --surface:   #0b1120;
+  --card:      #0f1a2e;
+  --border:    rgba(56,189,248,0.12);
+  --accent:    #38bdf8;
+  --accent2:   #818cf8;
+  --accent3:   #34d399;
+  --danger:    #f87171;
+  --warn:      #fbbf24;
+  --text:      #e2e8f0;
+  --muted:     #64748b;
+  --glow:      rgba(56,189,248,0.18);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── ANIMATED BACKGROUND ── */
+.bg-grid {
+  position: fixed; inset: 0; z-index: 0;
+  background-image:
+    linear-gradient(rgba(56,189,248,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56,189,248,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+.bg-orb {
+  position: fixed; border-radius: 50%; filter: blur(120px);
+  pointer-events: none; z-index: 0; animation: drift 12s ease-in-out infinite alternate;
+}
+.orb1 { width:500px; height:500px; top:-150px; left:-100px; background: rgba(56,189,248,0.07); }
+.orb2 { width:400px; height:400px; bottom:-100px; right:-100px; background: rgba(129,140,248,0.07); animation-delay:-6s; }
+.orb3 { width:300px; height:300px; top:40%; left:40%; background: rgba(52,211,153,0.05); animation-delay:-3s; }
+@keyframes drift { from{transform:translate(0,0) scale(1);} to{transform:translate(40px,30px) scale(1.08);} }
+
+/* ── LAYOUT ── */
+.page { position: relative; z-index: 1; display: none; min-height: 100vh; }
+.page.active { display: flex; }
+
+/* ── AUTH PAGES ── */
+.auth-page {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.auth-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  margin-bottom: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.auth-logo .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:0.6;transform:scale(0.8);} }
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 0 60px rgba(56,189,248,0.06), 0 32px 64px rgba(0,0,0,0.4);
+  animation: cardIn 0.5s cubic-bezier(0.22,1,0.36,1) both;
+}
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(24px) scale(0.97); }
+  to   { opacity:1; transform:translateY(0) scale(1); }
+}
+
+.auth-card h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+.auth-card .subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 32px;
+  font-weight: 300;
+}
+
+.form-group {
+  margin-bottom: 18px;
+}
+.form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(56,189,248,0.12);
+}
+.form-group input::placeholder { color: var(--muted); }
+
+.btn-primary {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent);
+  color: #04080f;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  margin-top: 8px;
+  transition: transform 0.15s, box-shadow 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after {
+  content:''; position:absolute; inset:0;
+  background: rgba(255,255,255,0.12);
+  opacity:0; transition:opacity 0.2s;
+}
+.btn-primary:hover { transform:translateY(-1px); box-shadow:0 8px 30px rgba(56,189,248,0.35); }
+.btn-primary:hover::after { opacity:1; }
+.btn-primary:active { transform:translateY(0); }
+.btn-primary:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+.auth-switch {
+  text-align: center;
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.auth-switch a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.auth-switch a:hover { opacity: 0.75; }
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-top: 16px;
+  display: none;
+}
+.alert.error   { background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.3); color:#fca5a5; }
+.alert.success { background:rgba(52,211,153,0.12); border:1px solid rgba(52,211,153,0.3); color:#6ee7b7; }
+.alert.show    { display:block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px);} to{opacity:1;transform:translateY(0);} }
+
+/* ── DASHBOARD PAGE ── */
+#page-dashboard {
+  flex-direction: column;
+}
+
+/* NAVBAR */
+.navbar {
+  position: sticky; top:0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px;
+  height: 64px;
+  background: rgba(11,17,32,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 18px;
+  display: flex; align-items:center; gap:8px;
+}
+.nav-logo .dot { width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 2s ease-in-out infinite; }
+.nav-right { display:flex; align-items:center; gap:20px; }
+.nav-user {
+  font-size: 13px; color: var(--muted);
+  display:flex; align-items:center; gap:8px;
+}
+.nav-avatar {
+  width:32px; height:32px; border-radius:50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne',sans-serif; font-weight:700; font-size:13px; color:#04080f;
+}
+.btn-logout {
+  padding: 7px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  cursor:pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.btn-logout:hover { border-color:var(--danger); color:var(--danger); }
+
+/* DASHBOARD BODY */
+.dash-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 480px 1fr;
+  gap: 0;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 36px 40px;
+  gap: 32px;
+}
+
+/* LEFT PANEL */
+.left-panel { display:flex; flex-direction:column; gap:24px; }
+
+.panel-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.panel-card h2 {
+  font-family:'Syne',sans-serif;
+  font-size:16px; font-weight:700;
+  letter-spacing:-0.2px;
+  margin-bottom:20px;
+  display:flex; align-items:center; gap:8px;
+}
+.panel-card h2 .badge {
+  font-size:10px; font-weight:600; letter-spacing:0.1em;
+  padding:3px 8px; border-radius:20px;
+  background:rgba(56,189,248,0.1); color:var(--accent);
+  border:1px solid rgba(56,189,248,0.2);
+}
+
+/* INPUT GRID */
+.input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.input-item label {
+  display:block;
+  font-size:11px; font-weight:500;
+  letter-spacing:0.07em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:6px;
+}
+.input-item input {
+  width:100%; padding:11px 14px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  font-size:14px; outline:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.input-item input:focus {
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(56,189,248,0.1);
+}
+.input-item input::placeholder { color:var(--muted); font-size:13px; }
+
+.btn-predict {
+  width:100%; padding:15px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color:#04080f;
+  border:none; border-radius:12px;
+  font-family:'Syne',sans-serif;
+  font-size:15px; font-weight:800;
+  cursor:pointer; letter-spacing:0.02em;
+  margin-top:4px;
+  transition:transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+  position:relative; overflow:hidden;
+}
+.btn-predict:hover { transform:translateY(-2px); box-shadow:0 12px 40px rgba(56,189,248,0.3); }
+.btn-predict:active { transform:translateY(0); }
+.btn-predict:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.btn-predict .spinner {
+  display:none; width:16px; height:16px;
+  border:2px solid rgba(4,8,15,0.3); border-top-color:#04080f;
+  border-radius:50%; animation:spin 0.7s linear infinite;
+  margin:0 auto;
+}
+@keyframes spin { to{transform:rotate(360deg);} }
+
+/* RIGHT PANEL */
+.right-panel { display:flex; flex-direction:column; gap:24px; }
+
+/* RESULT CARD */
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  min-height: 200px;
+  display:flex; flex-direction:column; justify-content:center;
+  position:relative; overflow:hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  transition: border-color 0.4s;
+}
+.result-card::before {
+  content:''; position:absolute;
+  top:-60px; right:-60px; width:200px; height:200px;
+  border-radius:50%; opacity:0.08;
+  background:var(--accent);
+  transition: background 0.4s;
+}
+
+.result-empty {
+  text-align:center; color:var(--muted);
+}
+.result-empty .icon { font-size:40px; margin-bottom:12px; opacity:0.4; }
+.result-empty p { font-size:14px; font-weight:300; }
+
+.result-content { display:none; }
+.result-content.show { display:block; animation:cardIn 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+
+.result-label {
+  font-size:11px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:8px;
+}
+.result-diagnosis {
+  font-family:'Syne',sans-serif;
+  font-size:36px; font-weight:800; line-height:1;
+  margin-bottom:16px; letter-spacing:-1px;
+}
+.result-diagnosis.diabetic   { color:var(--danger); }
+.result-diagnosis.healthy    { color:var(--accent3); }
+
+.result-meta { display:flex; gap:16px; flex-wrap:wrap; }
+.meta-chip {
+  padding:8px 14px; border-radius:8px;
+  font-size:13px; font-weight:500;
+  border:1px solid;
+}
+.chip-risk-low      { background:rgba(52,211,153,0.08); border-color:rgba(52,211,153,0.25); color:var(--accent3); }
+.chip-risk-moderate { background:rgba(251,191,36,0.08);  border-color:rgba(251,191,36,0.25);  color:var(--warn); }
+.chip-risk-high     { background:rgba(248,113,113,0.08); border-color:rgba(248,113,113,0.25); color:var(--danger); }
+.chip-prob          { background:rgba(56,189,248,0.08);  border-color:rgba(56,189,248,0.2);   color:var(--accent); }
+
+/* PROB BAR */
+.prob-bar-wrap { margin-top:20px; }
+.prob-bar-label { display:flex; justify-content:space-between; font-size:12px; color:var(--muted); margin-bottom:8px; }
+.prob-bar-track {
+  height:6px; background:var(--surface); border-radius:6px; overflow:hidden;
+}
+.prob-bar-fill {
+  height:100%; width:0%; border-radius:6px;
+  background: linear-gradient(90deg, var(--accent3), var(--accent), var(--danger));
+  transition: width 1.2s cubic-bezier(0.22,1,0.36,1);
+}
+
+/* TIPS */
+.tips-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px 28px;
+  font-size:14px; line-height:1.7;
+  color:var(--muted);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.tips-card .tips-title {
+  font-family:'Syne',sans-serif; font-size:13px; font-weight:700;
+  letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--text); margin-bottom:10px;
+  display:flex; align-items:center; gap:6px;
+}
+
+/* CHART CARD */
+.chart-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.chart-card h2 {
+  font-family:'Syne',sans-serif; font-size:16px; font-weight:700;
+  margin-bottom:20px; letter-spacing:-0.2px;
+}
+.chart-wrap { position:relative; height:220px; }
+
+/* REPORTS */
+.reports-panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  grid-column: 1 / -1;
+}
+.reports-panel h2 {
+  font-family:'Syne',sans-serif; font-size:16px; font-weight:700;
+  letter-spacing:-0.2px; margin-bottom:20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.reports-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));
+  gap:14px;
+}
+.report-item {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  transition:border-color 0.2s, transform 0.2s;
+}
+.report-item:hover { border-color:rgba(56,189,248,0.25); transform:translateY(-2px); }
+.report-item .r-result {
+  font-family:'Syne',sans-serif; font-size:15px; font-weight:700;
+  margin-bottom:8px;
+}
+.report-item .r-result.diabetic { color:var(--danger); }
+.report-item .r-result.healthy  { color:var(--accent3); }
+.report-item .r-meta { font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; }
+.report-item .r-meta span { display:flex; align-items:center; gap:4px; }
+
+.no-reports {
+  text-align:center; color:var(--muted); font-size:14px; padding:32px;
+}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .dash-body { grid-template-columns:1fr; padding:20px; }
+  .reports-panel { grid-column:1; }
+  .navbar { padding:0 20px; }
+}
+@media(max-width:500px){
+  .auth-card { padding:28px 20px; }
+  .input-grid { grid-template-columns:1fr; }
+}
+
+/* LOADING OVERLAY */
+.page-loader {
+  position:fixed; inset:0; z-index:999;
+  background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px;
+  animation:loaderOut 0.4s ease 0.5s both;
+}
+@keyframes loaderOut { to{opacity:0;pointer-events:none;} }
+.loader-logo {
+  font-family:'Syne',sans-serif; font-weight:800; font-size:24px;
+  letter-spacing:-0.5px; color:var(--accent);
+}
+.loader-bar {
+  width:120px; height:2px; background:var(--surface); border-radius:2px; overflow:hidden;
+}
+.loader-fill {
+  height:100%; width:0%; background:var(--accent);
+  animation:loadFill 0.5s ease 0.1s both;
+}
+@keyframes loadFill { to{width:100%;} }
+
+</style>
 </head>
- 
 <body>
- 
-    <div class="navbar">
-        <div class="logo">🩺 Medical AI</div>
-        <div id="userName">Not Logged In</div>
+
+<!-- BACKGROUND -->
+<div class="bg-grid"></div>
+<div class="bg-orb orb1"></div>
+<div class="bg-orb orb2"></div>
+<div class="bg-orb orb3"></div>
+
+<!-- LOADER -->
+<div class="page-loader">
+  <div class="loader-logo">MediScan AI</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: LOGIN
+════════════════════════════════════════════ -->
+<div id="page-login" class="page auth-page active">
+  <div class="auth-logo">
+    <div class="dot"></div> MediScan AI
+  </div>
+  <div class="auth-card">
+    <h1>Welcome back</h1>
+    <p class="subtitle">Sign in to your medical dashboard</p>
+
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
     </div>
- 
-    <div class="hero">
-        <h1>AI Powered Diabetes Prediction System</h1>
-        <p>Advanced Machine Learning Based Medical Diagnosis</p>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
     </div>
- 
-    <div class="container">
- 
-        <!-- LOGIN CARD -->
- 
-        <div class="card">
- 
-            <h2>Register</h2>
- 
-            <input type="text" id="registerName" placeholder="Name">
- 
-            <input type="email" id="registerEmail" placeholder="Email">
- 
-            <input type="password" id="registerPassword" placeholder="Password">
- 
-            <button onclick="register()">Register</button>
- 
-            <hr style="margin:25px 0;border-color:rgba(255,255,255,0.1)">
- 
-            <h2>Login</h2>
- 
-            <input type="email" id="loginEmail" placeholder="Email">
- 
-            <input type="password" id="loginPassword" placeholder="Password">
- 
-            <button onclick="login()">Login</button>
- 
+
+    <button class="btn-primary" id="btn-login" onclick="doLogin()">Sign In</button>
+
+    <div class="alert error" id="login-alert"></div>
+
+    <div class="auth-switch">
+      Don't have an account? <a onclick="showPage('register')">Create one</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: REGISTER
+════════════════════════════════════════════ -->
+<div id="page-register" class="page auth-page">
+  <div class="auth-logo">
+    <div class="dot"></div> MediScan AI
+  </div>
+  <div class="auth-card">
+    <h1>Create account</h1>
+    <p class="subtitle">Start your AI-powered health journey</p>
+
+    <div class="form-group">
+      <label>Full name</label>
+      <input type="text" id="reg-name" placeholder="Dr. Jane Smith" autocomplete="name">
+    </div>
+    <div class="form-group">
+      <label>Email address</label>
+      <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="reg-password" placeholder="••••••••" autocomplete="new-password">
+    </div>
+
+    <button class="btn-primary" id="btn-register" onclick="doRegister()">Create Account</button>
+
+    <div class="alert error"   id="reg-alert-err"></div>
+    <div class="alert success" id="reg-alert-ok"></div>
+
+    <div class="auth-switch">
+      Already have an account? <a onclick="showPage('login')">Sign in</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE: DASHBOARD
+════════════════════════════════════════════ -->
+<div id="page-dashboard" class="page">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo"><div class="dot"></div> MediScan AI</div>
+    <div class="nav-right">
+      <div class="nav-user">
+        <div class="nav-avatar" id="nav-avatar">?</div>
+        <span id="nav-name">—</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- BODY -->
+  <div class="dash-body">
+
+    <!-- LEFT: INPUT -->
+    <div class="left-panel">
+      <div class="panel-card">
+        <h2>Patient Data <span class="badge">8 Parameters</span></h2>
+        <div class="input-grid">
+          <div class="input-item">
+            <label>Pregnancies</label>
+            <input type="number" id="pregnancies" placeholder="0" min="0">
+          </div>
+          <div class="input-item">
+            <label>Glucose (mg/dL)</label>
+            <input type="number" id="glucose" placeholder="120" min="0">
+          </div>
+          <div class="input-item">
+            <label>Blood Pressure</label>
+            <input type="number" id="bloodPressure" placeholder="72" min="0">
+          </div>
+          <div class="input-item">
+            <label>Skin Thickness</label>
+            <input type="number" id="skinThickness" placeholder="20" min="0">
+          </div>
+          <div class="input-item">
+            <label>Insulin (µU/mL)</label>
+            <input type="number" id="insulin" placeholder="80" min="0">
+          </div>
+          <div class="input-item">
+            <label>BMI</label>
+            <input type="number" id="bmi" placeholder="25.0" step="0.1" min="0">
+          </div>
+          <div class="input-item">
+            <label>Pedigree Function</label>
+            <input type="number" id="dpf" placeholder="0.47" step="0.01" min="0">
+          </div>
+          <div class="input-item">
+            <label>Age</label>
+            <input type="number" id="age" placeholder="30" min="1">
+          </div>
         </div>
- 
-        <!-- PREDICTION CARD -->
- 
-        <div class="card">
- 
-            <h2>Patient Data</h2>
- 
-            <input id="pregnancies" placeholder="Pregnancies">
- 
-            <input id="glucose" placeholder="Glucose">
- 
-            <input id="bloodPressure" placeholder="Blood Pressure">
- 
-            <input id="skinThickness" placeholder="Skin Thickness">
- 
-            <input id="insulin" placeholder="Insulin">
- 
-            <input id="bmi" placeholder="BMI">
- 
-            <input id="dpf" placeholder="Diabetes Pedigree Function">
- 
-            <input id="age" placeholder="Age">
- 
-            <button onclick="predict()">Predict</button>
- 
-            <div class="result-card" id="resultCard">
- 
-                <h2>Prediction Result</h2>
- 
-                <p>No prediction yet</p>
- 
-            </div>
- 
-            <div class="risk-bar">
-                <div class="risk-fill" id="riskFill"></div>
-            </div>
- 
-            <div class="tips" id="tipsBox">
-                Health recommendations will appear here
-            </div>
- 
-        </div>
- 
+        <button class="btn-predict" id="btn-predict" onclick="doPredict()" style="margin-top:20px;">
+          <span id="predict-label">Run Diagnosis</span>
+          <div class="spinner" id="predict-spinner"></div>
+        </button>
+        <div class="alert error" id="predict-alert" style="margin-top:12px;"></div>
+      </div>
     </div>
- 
-    <!-- REPORTS -->
- 
-    <div style="max-width:1200px;margin:auto;padding:20px;">
- 
-        <div class="card">
- 
-            <h2>Saved Reports</h2>
- 
-            <div class="reports" id="reports"></div>
- 
+
+    <!-- RIGHT: RESULTS -->
+    <div class="right-panel">
+
+      <!-- RESULT -->
+      <div class="result-card" id="result-card">
+        <div class="result-empty" id="result-empty">
+          <div class="icon">🩺</div>
+          <p>Enter patient data and run diagnosis to see results</p>
         </div>
- 
-    </div>
- 
-    <!-- CHART -->
- 
-    <div style="max-width:1200px;margin:auto;padding:20px;">
- 
-        <div class="card">
- 
-            <h2>Risk Probability Analysis</h2>
- 
-            <div class="chart-container">
-                <canvas id="riskChart"></canvas>
+        <div class="result-content" id="result-content">
+          <div class="result-label">Diagnosis Result</div>
+          <div class="result-diagnosis" id="result-diagnosis">—</div>
+          <div class="result-meta">
+            <div class="meta-chip chip-prob" id="chip-prob">—</div>
+            <div class="meta-chip" id="chip-risk">—</div>
+          </div>
+          <div class="prob-bar-wrap">
+            <div class="prob-bar-label">
+              <span>Diabetes Probability</span>
+              <span id="prob-pct">—</span>
             </div>
- 
+            <div class="prob-bar-track">
+              <div class="prob-bar-fill" id="prob-fill"></div>
+            </div>
+          </div>
         </div>
- 
+      </div>
+
+      <!-- TIPS -->
+      <div class="tips-card" id="tips-card">
+        <div class="tips-title">💡 Health Insights</div>
+        <div id="tips-text">Submit patient data to receive personalised health recommendations.</div>
+      </div>
+
+      <!-- CHART -->
+      <div class="chart-card">
+        <h2>Risk Analysis</h2>
+        <div class="chart-wrap">
+          <canvas id="riskChart"></canvas>
+        </div>
+      </div>
+
     </div>
- 
+
+    <!-- REPORTS (full width) -->
+    <div class="reports-panel">
+      <h2>
+        <span>Past Reports</span>
+        <span id="report-count" style="font-size:12px;font-weight:400;color:var(--muted);"></span>
+      </h2>
+      <div class="reports-grid" id="reports-grid">
+        <div class="no-reports">No reports yet. Run your first diagnosis above.</div>
+      </div>
+    </div>
+
+  </div><!-- /.dash-body -->
+</div><!-- /#page-dashboard -->
+
+
 <script>
- 
 const API = "http://127.0.0.1:5000";
- 
 let currentEmail = "";
- 
-let chart;
- 
-// =====================================================
+let currentName  = "";
+let riskChart    = null;
+
+// ═══════════════════════════════
+// PAGE ROUTING
+// ═══════════════════════════════
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  clearAlerts();
+}
+
+function clearAlerts() {
+  document.querySelectorAll('.alert').forEach(a => {
+    a.classList.remove('show');
+    a.textContent = '';
+  });
+}
+
+function showAlert(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function setLoading(btnId, spinnerId, labelId, loading) {
+  const btn = document.getElementById(btnId);
+  const sp  = document.getElementById(spinnerId);
+  const lb  = document.getElementById(labelId);
+  btn.disabled = loading;
+  if (sp) sp.style.display = loading ? 'block' : 'none';
+  if (lb) lb.style.display = loading ? 'none'  : 'block';
+}
+
+// ═══════════════════════════════
 // REGISTER
-// =====================================================
- 
-async function register(){
- 
-    const name = document.getElementById("registerName").value;
- 
-    const email = document.getElementById("registerEmail").value;
- 
-    const password = document.getElementById("registerPassword").value;
- 
-    const response = await fetch(`${API}/register`,{
- 
-        method:"POST",
- 
-        headers:{
-            "Content-Type":"application/json"
-        },
- 
-        body:JSON.stringify({
-            name,
-            email,
-            password
-        })
+// ═══════════════════════════════
+
+async function doRegister() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!name || !email || !password) {
+    showAlert('reg-alert-err', 'Please fill in all fields.');
+    return;
+  }
+
+  document.getElementById('btn-register').disabled = true;
+  document.getElementById('btn-register').textContent = 'Creating account…';
+
+  try {
+    const res  = await fetch(`${API}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password })
     });
- 
-    const data = await response.json();
- 
-    alert(data.message);
+    const data = await res.json();
+
+    if (res.ok) {
+      showAlert('reg-alert-ok', '✓ Account created! Redirecting to login…');
+      setTimeout(() => showPage('login'), 1800);
+    } else {
+      showAlert('reg-alert-err', data.message || 'Registration failed.');
+    }
+  } catch(e) {
+    showAlert('reg-alert-err', 'Cannot reach server. Is the backend running?');
+  }
+
+  document.getElementById('btn-register').disabled = false;
+  document.getElementById('btn-register').textContent = 'Create Account';
 }
- 
-// =====================================================
+
+// ═══════════════════════════════
 // LOGIN
-// =====================================================
- 
-async function login(){
- 
-    const email = document.getElementById("loginEmail").value;
- 
-    const password = document.getElementById("loginPassword").value;
- 
-    const response = await fetch(`${API}/login`,{
- 
-        method:"POST",
- 
-        headers:{
-            "Content-Type":"application/json"
-        },
- 
-        body:JSON.stringify({
-            email,
-            password
-        })
- 
+// ═══════════════════════════════
+
+async function doLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    showAlert('login-alert', 'Please enter your email and password.');
+    return;
+  }
+
+  document.getElementById('btn-login').disabled = true;
+  document.getElementById('btn-login').textContent = 'Signing in…';
+
+  try {
+    const res  = await fetch(`${API}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
     });
- 
-    const data = await response.json();
- 
-    if(response.ok){
- 
-        localStorage.setItem("token",data.token);
- 
-        currentEmail = email;
- 
-        document.getElementById("userName").innerHTML =
-            `Logged In: ${data.name}`;
- 
-        alert("Login Successful");
- 
-        loadReports();
- 
-    }else{
- 
-        alert(data.message);
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem('token', data.token);
+      currentEmail = email;
+      currentName  = data.name;
+      initDashboard();
+      showPage('dashboard');
+    } else {
+      showAlert('login-alert', data.message || 'Invalid credentials.');
     }
+  } catch(e) {
+    showAlert('login-alert', 'Cannot reach server. Is the backend running?');
+  }
+
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'Sign In';
 }
- 
-// =====================================================
+
+// ═══════════════════════════════
+// LOGOUT
+// ═══════════════════════════════
+
+function doLogout() {
+  localStorage.removeItem('token');
+  currentEmail = '';
+  currentName  = '';
+  document.getElementById('login-email').value    = '';
+  document.getElementById('login-password').value = '';
+  resetResult();
+  showPage('login');
+}
+
+// ═══════════════════════════════
+// DASHBOARD INIT
+// ═══════════════════════════════
+
+function initDashboard() {
+  document.getElementById('nav-name').textContent   = currentName;
+  document.getElementById('nav-avatar').textContent = currentName.charAt(0).toUpperCase();
+  loadReports();
+  initChart();
+}
+
+// ═══════════════════════════════
 // PREDICT
-// =====================================================
- 
-async function predict(){
- 
-    if(currentEmail === ""){
-        alert("Please login first");
-        return;
+// ═══════════════════════════════
+
+async function doPredict() {
+  const fields = ['pregnancies','glucose','bloodPressure','skinThickness','insulin','bmi','dpf','age'];
+  for (const f of fields) {
+    if (document.getElementById(f).value === '') {
+      showAlert('predict-alert', 'Please fill in all 8 patient fields.');
+      return;
     }
- 
-    const body = {
- 
-        email:currentEmail,
- 
-        pregnancies:document.getElementById("pregnancies").value,
- 
-        glucose:document.getElementById("glucose").value,
- 
-        bloodPressure:document.getElementById("bloodPressure").value,
- 
-        skinThickness:document.getElementById("skinThickness").value,
- 
-        insulin:document.getElementById("insulin").value,
- 
-        bmi:document.getElementById("bmi").value,
- 
-        dpf:document.getElementById("dpf").value,
- 
-        age:document.getElementById("age").value
-    };
- 
-    const response = await fetch(`${API}/predict`,{
- 
-        method:"POST",
- 
-        headers:{
-            "Content-Type":"application/json"
-        },
- 
-        body:JSON.stringify(body)
+  }
+
+  document.getElementById('predict-label').style.display  = 'none';
+  document.getElementById('predict-spinner').style.display = 'block';
+  document.getElementById('btn-predict').disabled = true;
+  document.getElementById('predict-alert').classList.remove('show');
+
+  const body = {
+    email:         currentEmail,
+    pregnancies:   document.getElementById('pregnancies').value,
+    glucose:       document.getElementById('glucose').value,
+    bloodPressure: document.getElementById('bloodPressure').value,
+    skinThickness: document.getElementById('skinThickness').value,
+    insulin:       document.getElementById('insulin').value,
+    bmi:           document.getElementById('bmi').value,
+    dpf:           document.getElementById('dpf').value,
+    age:           document.getElementById('age').value,
+  };
+
+  try {
+    const res  = await fetch(`${API}/predict`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
- 
-    const data = await response.json();
- 
-    // RESULT CARD
- 
-    document.getElementById("resultCard").innerHTML = `
- 
-        <h1>${data.result}</h1>
- 
-        <h2 style="margin-top:10px">
-            Risk Level: ${data.risk}
-        </h2>
- 
-        <h2 style="margin-top:10px">
-            Probability: ${data.probability}%
-        </h2>
-    `;
- 
-    // RISK BAR
- 
-    const fill = document.getElementById("riskFill");
- 
-    fill.style.width = `${data.probability}%`;
- 
-    fill.className = "risk-fill";
- 
-    if(data.risk === "Low"){
- 
-        fill.classList.add("green");
- 
-        document.getElementById("tipsBox").innerHTML =
-        "Maintain healthy lifestyle and regular exercise.";
- 
-    }else if(data.risk === "Moderate"){
- 
-        fill.classList.add("yellow");
- 
-        document.getElementById("tipsBox").innerHTML =
-        "Monitor sugar intake and maintain proper diet.";
- 
-    }else{
- 
-        fill.classList.add("red");
- 
-        document.getElementById("tipsBox").innerHTML =
-        "Consult a medical professional immediately.";
+    const data = await res.json();
+
+    if (res.ok) {
+      renderResult(data);
+      loadReports();
+    } else {
+      showAlert('predict-alert', data.message || 'Prediction failed.');
     }
- 
-    // CHART
- 
-    updateChart(data.probability);
- 
-    // LOAD REPORTS
- 
-    loadReports();
+  } catch(e) {
+    showAlert('predict-alert', 'Cannot reach server. Is the backend running?');
+  }
+
+  document.getElementById('predict-label').style.display  = 'block';
+  document.getElementById('predict-spinner').style.display = 'none';
+  document.getElementById('btn-predict').disabled = false;
 }
- 
-// =====================================================
-// LOAD REPORTS
-// =====================================================
- 
-async function loadReports(){
- 
-    const response = await fetch(
-        `${API}/reports/${currentEmail}`
-    );
- 
-    const data = await response.json();
- 
-    let html = "";
- 
-    data.reverse();
- 
-    data.forEach(report=>{
- 
-        // FIX: probability is now stored as 0-100 in DB (not 0-1),
-        // so display it directly without multiplying by 100.
-        html += `
- 
-        <div class="report-item">
- 
-            <h3>${report.result}</h3>
- 
-            <p>Risk: ${report.risk}</p>
- 
-            <p>
-                Probability:
-                ${report.probability.toFixed(2)}%
-            </p>
- 
-        </div>
-        `;
-    });
- 
-    document.getElementById("reports").innerHTML = html;
+
+// ═══════════════════════════════
+// RENDER RESULT
+// ═══════════════════════════════
+
+function renderResult(data) {
+  const isDiabetic = data.result === 'Diabetic';
+  const prob       = data.probability; // 0-100
+  const risk       = data.risk;
+
+  // Show content, hide empty
+  document.getElementById('result-empty').style.display   = 'none';
+  const content = document.getElementById('result-content');
+  content.classList.remove('show');
+  void content.offsetWidth; // reflow for re-animation
+  content.classList.add('show');
+
+  // Diagnosis text
+  const diag = document.getElementById('result-diagnosis');
+  diag.textContent  = data.result;
+  diag.className    = 'result-diagnosis ' + (isDiabetic ? 'diabetic' : 'healthy');
+
+  // Chips
+  document.getElementById('chip-prob').textContent = `${prob}% probability`;
+
+  const riskChip = document.getElementById('chip-risk');
+  riskChip.textContent = `${risk} Risk`;
+  riskChip.className   = 'meta-chip ' +
+    (risk === 'Low' ? 'chip-risk-low' : risk === 'Moderate' ? 'chip-risk-moderate' : 'chip-risk-high');
+
+  // Bar
+  document.getElementById('prob-pct').textContent = `${prob}%`;
+  setTimeout(() => {
+    document.getElementById('prob-fill').style.width = `${prob}%`;
+  }, 100);
+
+  // Card border glow
+  const card = document.getElementById('result-card');
+  card.style.borderColor = isDiabetic
+    ? 'rgba(248,113,113,0.3)'
+    : 'rgba(52,211,153,0.3)';
+
+  // Tips
+  const tips = {
+    Low:      '✅ Great news — the risk is low. Maintain a balanced diet rich in vegetables and whole grains, stay physically active with at least 30 minutes of exercise daily, and schedule annual health checkups to stay on track.',
+    Moderate: '⚠️ Moderate risk detected. Reduce refined sugar and processed carbohydrate intake, monitor blood glucose levels regularly, increase physical activity, and consider consulting a healthcare professional for a full metabolic panel.',
+    High:     '🚨 High risk identified. Please consult a medical professional as soon as possible. Immediate lifestyle changes — low-glycaemic diet, regular exercise, and weight management — are strongly advised alongside professional medical guidance.',
+  };
+  document.getElementById('tips-text').textContent = tips[risk];
+
+  // Chart
+  updateChart(prob);
 }
- 
-// =====================================================
+
+function resetResult() {
+  document.getElementById('result-empty').style.display = 'flex';
+  document.getElementById('result-content').classList.remove('show');
+  document.getElementById('result-card').style.borderColor = 'var(--border)';
+  document.getElementById('prob-fill').style.width = '0%';
+  document.getElementById('tips-text').textContent = 'Submit patient data to receive personalised health recommendations.';
+  initChart();
+}
+
+// ═══════════════════════════════
 // CHART
-// =====================================================
- 
-function updateChart(probability){
- 
-    const ctx = document
-        .getElementById("riskChart")
-        .getContext("2d");
- 
-    if(chart){
-        chart.destroy();
-    }
- 
-    chart = new Chart(ctx, {
- 
-        type: "doughnut",
- 
-        data: {
- 
-            labels: ["Risk", "Safe"],
- 
-            datasets: [{
- 
-                data: [probability, 100 - probability]
- 
-            }]
+// ═══════════════════════════════
+
+function initChart() {
+  const ctx = document.getElementById('riskChart').getContext('2d');
+  if (riskChart) riskChart.destroy();
+  riskChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Risk', 'Safe'],
+      datasets: [{
+        data: [0, 100],
+        backgroundColor: ['rgba(56,189,248,0.15)', 'rgba(255,255,255,0.04)'],
+        borderColor:     ['rgba(56,189,248,0.4)',   'rgba(255,255,255,0.06)'],
+        borderWidth: 1,
+      }]
+    },
+    options: {
+      cutout: '72%',
+      plugins: {
+        legend: {
+          labels: { color: '#64748b', font: { family: 'DM Sans', size: 13 } }
         }
-    });
+      },
+      animation: { animateRotate: true, duration: 900 }
+    }
+  });
 }
- 
+
+function updateChart(prob) {
+  if (!riskChart) return;
+  const safe = 100 - prob;
+  riskChart.data.datasets[0].data = [prob, safe];
+  riskChart.data.datasets[0].backgroundColor = [
+    prob >= 70 ? 'rgba(248,113,113,0.25)' :
+    prob >= 30 ? 'rgba(251,191,36,0.2)'   : 'rgba(52,211,153,0.2)',
+    'rgba(255,255,255,0.04)'
+  ];
+  riskChart.data.datasets[0].borderColor = [
+    prob >= 70 ? 'rgba(248,113,113,0.6)' :
+    prob >= 30 ? 'rgba(251,191,36,0.5)'  : 'rgba(52,211,153,0.5)',
+    'rgba(255,255,255,0.06)'
+  ];
+  riskChart.update();
+}
+
+// ═══════════════════════════════
+// REPORTS
+// ═══════════════════════════════
+
+async function loadReports() {
+  if (!currentEmail) return;
+  try {
+    const res  = await fetch(`${API}/reports/${currentEmail}`);
+    const data = await res.json();
+
+    const grid = document.getElementById('reports-grid');
+
+    if (!data || data.length === 0) {
+      grid.innerHTML = '<div class="no-reports">No reports yet. Run your first diagnosis above.</div>';
+      document.getElementById('report-count').textContent = '';
+      return;
+    }
+
+    const sorted = [...data].reverse();
+    document.getElementById('report-count').textContent = `${sorted.length} record${sorted.length !== 1 ? 's' : ''}`;
+
+    grid.innerHTML = sorted.map(r => {
+      const isDiabetic = r.result === 'Diabetic';
+      const riskClass  = r.risk === 'Low' ? 'chip-risk-low' : r.risk === 'Moderate' ? 'chip-risk-moderate' : 'chip-risk-high';
+      return `
+        <div class="report-item">
+          <div class="r-result ${isDiabetic ? 'diabetic' : 'healthy'}">${r.result}</div>
+          <div class="r-meta">
+            <span>📊 ${r.probability.toFixed(1)}%</span>
+            <span>⚡ ${r.risk} Risk</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch(e) {
+    console.error('Failed to load reports:', e);
+  }
+}
+
+// ═══════════════════════════════
+// ENTER KEY SUPPORT
+// ═══════════════════════════════
+
+document.getElementById('login-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+document.getElementById('reg-password').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doRegister();
+});
+
+// ═══════════════════════════════
+// INIT — check for existing token
+// ═══════════════════════════════
+
+window.addEventListener('load', () => {
+  initChart();
+  // If a token exists, go straight to dashboard
+  // (requires the email to be stored too — skipped for simplicity,
+  //  user will just need to log in again after a page refresh)
+});
 </script>
- 
 </body>
 </html>
