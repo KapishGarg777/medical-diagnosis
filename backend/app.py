@@ -37,6 +37,27 @@ scaler   = joblib.load("scaler.pkl")
 selector = joblib.load("selector.pkl")
 
 # ============================================================
+# ZERO IMPUTATION MEDIANS
+# Calculated from YOUR diabetes.csv using the exact same
+# cleaning + outlier removal steps as the training notebook.
+# The model was never trained on 0s in these columns —
+# they were replaced with per-class medians before scaling.
+# We use the overall median (avg of both classes) at
+# prediction time since we don't know the class yet.
+#
+#   Non-Diabetic medians: Glucose=107, BP=70, Skin=27, Insulin=102.5, BMI=30.1
+#   Diabetic medians:     Glucose=138, BP=74.5, Skin=32, Insulin=169.5, BMI=34.3
+# ============================================================
+
+IMPUTE_MEDIANS = {
+    "Glucose":       122.5,
+    "BloodPressure":  72.25,
+    "SkinThickness":  29.5,
+    "Insulin":       136.0,
+    "BMI":            32.2,
+}
+
+# ============================================================
 # REGISTER
 # ============================================================
 
@@ -117,64 +138,72 @@ def predict():
     data = request.json
 
     # ========================================================
-    # CREATE INPUT DATAFRAME
+    # READ RAW VALUES
     # ========================================================
 
-    input_df = pd.DataFrame([[
-
-        float(data["pregnancies"]),
-        float(data["glucose"]),
-        float(data["bloodPressure"]),
-        float(data["skinThickness"]),
-        float(data["insulin"]),
-        float(data["bmi"]),
-        float(data["dpf"]),
-        float(data["age"])
-
-    ]], columns=[
-
-        "Pregnancies",
-        "Glucose",
-        "BloodPressure",
-        "SkinThickness",
-        "Insulin",
-        "BMI",
-        "DiabetesPedigreeFunction",
-        "Age"
-    ])
+    pregnancies    = float(data["pregnancies"])
+    glucose        = float(data["glucose"])
+    blood_pressure = float(data["bloodPressure"])
+    skin_thickness = float(data["skinThickness"])
+    insulin        = float(data["insulin"])
+    bmi            = float(data["bmi"])
+    dpf            = float(data["dpf"])
+    age            = float(data["age"])
 
     # ========================================================
-    # SAME FEATURE ENGINEERING
+    # CRITICAL FIX: Replace 0s with training medians
+    # The training notebook replaced 0s with per-class medians
+    # BEFORE scaling. Without this, the RobustScaler receives
+    # values it was never trained on, producing extreme scaled
+    # values that push every prediction to Non-Diabetic.
     # ========================================================
 
-    input_df["Glucose_BMI"]     = input_df["Glucose"] * input_df["BMI"]
-    input_df["BMI_Age"]         = input_df["BMI"] * input_df["Age"]
-    input_df["Glucose_Age"]     = input_df["Glucose"] * input_df["Age"]
-    input_df["Insulin_Glucose"] = input_df["Insulin"] / (input_df["Glucose"] + 1)
-    input_df["BP_per_Age"]      = input_df["BloodPressure"] / (input_df["Age"] + 1)
+    if glucose        == 0: glucose        = IMPUTE_MEDIANS["Glucose"]
+    if blood_pressure == 0: blood_pressure = IMPUTE_MEDIANS["BloodPressure"]
+    if skin_thickness == 0: skin_thickness = IMPUTE_MEDIANS["SkinThickness"]
+    if insulin        == 0: insulin        = IMPUTE_MEDIANS["Insulin"]
+    if bmi            == 0: bmi            = IMPUTE_MEDIANS["BMI"]
 
     # ========================================================
-    # SAME SCALING
+    # FEATURE ENGINEERING (identical to training notebook)
     # ========================================================
 
-    input_scaled = scaler.transform(input_df)
+    glucose_bmi     = glucose * bmi
+    bmi_age         = bmi * age
+    glucose_age     = glucose * age
+    insulin_glucose = insulin / (glucose + 1)
+    bp_per_age      = blood_pressure / (age + 1)
 
     # ========================================================
-    # SAME FEATURE SELECTION
+    # BUILD NUMPY ARRAY in exact training column order
+    # Using numpy array (not DataFrame) matches how the scaler
+    # was fit — on numpy output from SMOTE, not a DataFrame.
     # ========================================================
 
+    input_array = np.array([[
+        pregnancies,
+        glucose,
+        blood_pressure,
+        skin_thickness,
+        insulin,
+        bmi,
+        dpf,
+        age,
+        glucose_bmi,
+        bmi_age,
+        glucose_age,
+        insulin_glucose,
+        bp_per_age
+    ]])
+
+    # ========================================================
+    # SCALE → SELECT → PREDICT
+    # ========================================================
+
+    input_scaled   = scaler.transform(input_array)
     input_selected = selector.transform(input_scaled)
 
-    # ========================================================
-    # SAME PREDICTION
-    # ========================================================
-
-    prediction = model.predict(input_selected)[0]
-
-    # ========================================================
-    # PROBABILITY
-    # ========================================================
-
+    prediction  = model.predict(input_selected)[0]
     probability = model.predict_proba(input_selected)[0][1]
 
     # ========================================================
@@ -191,20 +220,20 @@ def predict():
     result = "Diabetic" if prediction == 1 else "Not Diabetic"
 
     # ========================================================
-    # SAVE REPORT
+    # SAVE REPORT (probability stored as 0-100)
     # ========================================================
 
     reports_collection.insert_one({
-        "email": data["email"],
-        "result": result,
-        "risk": risk,
-        "probability": float(probability)
+        "email":       data["email"],
+        "result":      result,
+        "risk":        risk,
+        "probability": round(float(probability) * 100, 2)
     })
 
     return jsonify({
-        "result": result,
-        "risk": risk,
-        "probability": round(probability * 100, 2)
+        "result":      result,
+        "risk":        risk,
+        "probability": round(float(probability) * 100, 2)
     })
 
 # ============================================================
@@ -224,7 +253,7 @@ def reports(email):
     return jsonify(reports)
 
 # ============================================================
-# TEST ROUTE
+# HOME
 # ============================================================
 
 @app.route("/")

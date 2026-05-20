@@ -1,29 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-
+ 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medical AI Diagnosis</title>
-
+ 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+ 
     <style>
-
+ 
         *{
             margin:0;
             padding:0;
             box-sizing:border-box;
             font-family:Arial;
         }
-
+ 
         body{
             background:#0f172a;
             color:white;
             min-height:100vh;
             overflow-x:hidden;
         }
-
+ 
         .navbar{
             width:100%;
             padding:20px 40px;
@@ -35,27 +35,27 @@
             position:sticky;
             top:0;
         }
-
+ 
         .logo{
             font-size:28px;
             font-weight:bold;
         }
-
+ 
         .hero{
             padding:60px 20px;
             text-align:center;
         }
-
+ 
         .hero h1{
             font-size:52px;
             margin-bottom:20px;
         }
-
+ 
         .hero p{
             color:#cbd5e1;
             font-size:20px;
         }
-
+ 
         .container{
             max-width:1200px;
             margin:auto;
@@ -64,7 +64,7 @@
             grid-template-columns:1fr 1fr;
             gap:20px;
         }
-
+ 
         .card{
             background:rgba(255,255,255,0.06);
             border:1px solid rgba(255,255,255,0.1);
@@ -72,11 +72,11 @@
             border-radius:24px;
             backdrop-filter:blur(12px);
         }
-
+ 
         .card h2{
             margin-bottom:20px;
         }
-
+ 
         input{
             width:100%;
             padding:14px;
@@ -87,7 +87,7 @@
             color:white;
             font-size:16px;
         }
-
+ 
         button{
             width:100%;
             padding:15px;
@@ -100,12 +100,12 @@
             cursor:pointer;
             transition:0.3s;
         }
-
+ 
         button:hover{
             transform:translateY(-2px);
             background:#2563eb;
         }
-
+ 
         .result-card{
             margin-top:25px;
             text-align:center;
@@ -113,7 +113,7 @@
             border-radius:20px;
             background:rgba(255,255,255,0.05);
         }
-
+ 
         .risk-bar{
             width:100%;
             height:20px;
@@ -122,431 +122,433 @@
             overflow:hidden;
             margin-top:15px;
         }
-
+ 
         .risk-fill{
             height:100%;
             width:0%;
             transition:1s;
         }
-
+ 
         .green{
             background:#22c55e;
         }
-
+ 
         .yellow{
             background:#eab308;
         }
-
+ 
         .red{
             background:#ef4444;
         }
-
+ 
         .reports{
             margin-top:20px;
         }
-
+ 
         .report-item{
             background:rgba(255,255,255,0.05);
             padding:15px;
             border-radius:14px;
             margin-top:12px;
         }
-
+ 
         .chart-container{
             margin-top:20px;
         }
-
+ 
         .tips{
             margin-top:20px;
             padding:15px;
             border-radius:14px;
             background:rgba(255,255,255,0.05);
         }
-
+ 
         @media(max-width:900px){
-
+ 
             .container{
                 grid-template-columns:1fr;
             }
-
+ 
             .hero h1{
                 font-size:36px;
             }
         }
-
+ 
     </style>
-
+ 
 </head>
-
+ 
 <body>
-
+ 
     <div class="navbar">
         <div class="logo">🩺 Medical AI</div>
         <div id="userName">Not Logged In</div>
     </div>
-
+ 
     <div class="hero">
         <h1>AI Powered Diabetes Prediction System</h1>
         <p>Advanced Machine Learning Based Medical Diagnosis</p>
     </div>
-
+ 
     <div class="container">
-
+ 
         <!-- LOGIN CARD -->
-
+ 
         <div class="card">
-
+ 
             <h2>Register</h2>
-
+ 
             <input type="text" id="registerName" placeholder="Name">
-
+ 
             <input type="email" id="registerEmail" placeholder="Email">
-
+ 
             <input type="password" id="registerPassword" placeholder="Password">
-
+ 
             <button onclick="register()">Register</button>
-
+ 
             <hr style="margin:25px 0;border-color:rgba(255,255,255,0.1)">
-
+ 
             <h2>Login</h2>
-
+ 
             <input type="email" id="loginEmail" placeholder="Email">
-
+ 
             <input type="password" id="loginPassword" placeholder="Password">
-
+ 
             <button onclick="login()">Login</button>
-
+ 
         </div>
-
+ 
         <!-- PREDICTION CARD -->
-
+ 
         <div class="card">
-
+ 
             <h2>Patient Data</h2>
-
+ 
             <input id="pregnancies" placeholder="Pregnancies">
-
+ 
             <input id="glucose" placeholder="Glucose">
-
+ 
             <input id="bloodPressure" placeholder="Blood Pressure">
-
+ 
             <input id="skinThickness" placeholder="Skin Thickness">
-
+ 
             <input id="insulin" placeholder="Insulin">
-
+ 
             <input id="bmi" placeholder="BMI">
-
+ 
             <input id="dpf" placeholder="Diabetes Pedigree Function">
-
+ 
             <input id="age" placeholder="Age">
-
+ 
             <button onclick="predict()">Predict</button>
-
+ 
             <div class="result-card" id="resultCard">
-
+ 
                 <h2>Prediction Result</h2>
-
+ 
                 <p>No prediction yet</p>
-
+ 
             </div>
-
+ 
             <div class="risk-bar">
                 <div class="risk-fill" id="riskFill"></div>
             </div>
-
+ 
             <div class="tips" id="tipsBox">
                 Health recommendations will appear here
             </div>
-
+ 
         </div>
-
+ 
     </div>
-
+ 
     <!-- REPORTS -->
-
+ 
     <div style="max-width:1200px;margin:auto;padding:20px;">
-
+ 
         <div class="card">
-
+ 
             <h2>Saved Reports</h2>
-
+ 
             <div class="reports" id="reports"></div>
-
+ 
         </div>
-
+ 
     </div>
-
+ 
     <!-- CHART -->
-
+ 
     <div style="max-width:1200px;margin:auto;padding:20px;">
-
+ 
         <div class="card">
-
+ 
             <h2>Risk Probability Analysis</h2>
-
+ 
             <div class="chart-container">
                 <canvas id="riskChart"></canvas>
             </div>
-
+ 
         </div>
-
+ 
     </div>
-
+ 
 <script>
-
+ 
 const API = "http://127.0.0.1:5000";
-
+ 
 let currentEmail = "";
-
+ 
 let chart;
-
+ 
 // =====================================================
 // REGISTER
 // =====================================================
-
+ 
 async function register(){
-
+ 
     const name = document.getElementById("registerName").value;
-
+ 
     const email = document.getElementById("registerEmail").value;
-
+ 
     const password = document.getElementById("registerPassword").value;
-
+ 
     const response = await fetch(`${API}/register`,{
-
+ 
         method:"POST",
-
+ 
         headers:{
             "Content-Type":"application/json"
         },
-
+ 
         body:JSON.stringify({
             name,
             email,
             password
         })
     });
-
+ 
     const data = await response.json();
-
+ 
     alert(data.message);
 }
-
+ 
 // =====================================================
 // LOGIN
 // =====================================================
-
+ 
 async function login(){
-
+ 
     const email = document.getElementById("loginEmail").value;
-
+ 
     const password = document.getElementById("loginPassword").value;
-
+ 
     const response = await fetch(`${API}/login`,{
-
+ 
         method:"POST",
-
+ 
         headers:{
             "Content-Type":"application/json"
         },
-
+ 
         body:JSON.stringify({
             email,
             password
         })
-
+ 
     });
-
+ 
     const data = await response.json();
-
+ 
     if(response.ok){
-
+ 
         localStorage.setItem("token",data.token);
-
+ 
         currentEmail = email;
-
+ 
         document.getElementById("userName").innerHTML =
             `Logged In: ${data.name}`;
-
+ 
         alert("Login Successful");
-
+ 
         loadReports();
-
+ 
     }else{
-
+ 
         alert(data.message);
     }
 }
-
+ 
 // =====================================================
 // PREDICT
 // =====================================================
-
+ 
 async function predict(){
-
+ 
     if(currentEmail === ""){
         alert("Please login first");
         return;
     }
-
+ 
     const body = {
-
+ 
         email:currentEmail,
-
+ 
         pregnancies:document.getElementById("pregnancies").value,
-
+ 
         glucose:document.getElementById("glucose").value,
-
+ 
         bloodPressure:document.getElementById("bloodPressure").value,
-
+ 
         skinThickness:document.getElementById("skinThickness").value,
-
+ 
         insulin:document.getElementById("insulin").value,
-
+ 
         bmi:document.getElementById("bmi").value,
-
+ 
         dpf:document.getElementById("dpf").value,
-
+ 
         age:document.getElementById("age").value
     };
-
+ 
     const response = await fetch(`${API}/predict`,{
-
+ 
         method:"POST",
-
+ 
         headers:{
             "Content-Type":"application/json"
         },
-
+ 
         body:JSON.stringify(body)
     });
-
+ 
     const data = await response.json();
-
+ 
     // RESULT CARD
-
+ 
     document.getElementById("resultCard").innerHTML = `
-
+ 
         <h1>${data.result}</h1>
-
+ 
         <h2 style="margin-top:10px">
             Risk Level: ${data.risk}
         </h2>
-
+ 
         <h2 style="margin-top:10px">
             Probability: ${data.probability}%
         </h2>
     `;
-
+ 
     // RISK BAR
-
+ 
     const fill = document.getElementById("riskFill");
-
+ 
     fill.style.width = `${data.probability}%`;
-
+ 
     fill.className = "risk-fill";
-
+ 
     if(data.risk === "Low"){
-
+ 
         fill.classList.add("green");
-
+ 
         document.getElementById("tipsBox").innerHTML =
         "Maintain healthy lifestyle and regular exercise.";
-
+ 
     }else if(data.risk === "Moderate"){
-
+ 
         fill.classList.add("yellow");
-
+ 
         document.getElementById("tipsBox").innerHTML =
         "Monitor sugar intake and maintain proper diet.";
-
+ 
     }else{
-
+ 
         fill.classList.add("red");
-
+ 
         document.getElementById("tipsBox").innerHTML =
         "Consult a medical professional immediately.";
     }
-
+ 
     // CHART
-
+ 
     updateChart(data.probability);
-
+ 
     // LOAD REPORTS
-
+ 
     loadReports();
 }
-
+ 
 // =====================================================
 // LOAD REPORTS
 // =====================================================
-
+ 
 async function loadReports(){
-
+ 
     const response = await fetch(
         `${API}/reports/${currentEmail}`
     );
-
+ 
     const data = await response.json();
-
+ 
     let html = "";
-
+ 
     data.reverse();
-
+ 
     data.forEach(report=>{
-
+ 
+        // FIX: probability is now stored as 0-100 in DB (not 0-1),
+        // so display it directly without multiplying by 100.
         html += `
-
+ 
         <div class="report-item">
-
+ 
             <h3>${report.result}</h3>
-
+ 
             <p>Risk: ${report.risk}</p>
-
+ 
             <p>
                 Probability:
-                ${(report.probability * 100).toFixed(2)}%
+                ${report.probability.toFixed(2)}%
             </p>
-
+ 
         </div>
         `;
     });
-
+ 
     document.getElementById("reports").innerHTML = html;
 }
-
+ 
 // =====================================================
 // CHART
 // =====================================================
-
+ 
 function updateChart(probability){
-
+ 
     const ctx = document
         .getElementById("riskChart")
         .getContext("2d");
-
+ 
     if(chart){
         chart.destroy();
     }
-
+ 
     chart = new Chart(ctx, {
-
+ 
         type: "doughnut",
-
+ 
         data: {
-
+ 
             labels: ["Risk", "Safe"],
-
+ 
             datasets: [{
-
+ 
                 data: [probability, 100 - probability]
-
+ 
             }]
         }
     });
 }
-
+ 
 </script>
-
+ 
 </body>
 </html>
